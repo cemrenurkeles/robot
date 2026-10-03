@@ -1,0 +1,7 @@
+{
+  "_comment": "Calibration camera. Balance des blancs : make calibrate-wb",
+  "white_balance": {
+    "a_offset": 0,
+    "b_offset": 0
+  }
+}

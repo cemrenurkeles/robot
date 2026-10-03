@@ -1,0 +1,64 @@
+services:
+  lerobot-base:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      network: host
+    image: ${ROBOTKRAFT_IMAGE:-ghcr.io/alsacedigitale/robotkraft:latest}
+    volumes:
+      - ./datasets:/workspace/datasets
+      - ./scripts:/workspace/scripts
+      - ./outputs:/workspace/outputs
+      - .cache:/workspace/.cache
+      - uv-cache:/opt/uv-cache
+    environment:
+      - HF_TOKEN=${HF_TOKEN:-}
+    shm_size: '2gb'
+    stdin_open: true
+    tty: true
+
+  lerobot:
+    extends:
+      service: lerobot-base
+    privileged: true
+    environment:
+      - DISPLAY=${DISPLAY:-:0}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:ro
+      - /dev/bus/usb:/dev/bus/usb
+    devices:
+      - /dev/lerobot_follower:/dev/ttyACM0
+      - /dev/lerobot_leader:/dev/ttyACM1
+
+  lerobot-camera:
+    extends:
+      service: lerobot-base
+    privileged: true
+    volumes:
+      - /dev/bus/usb:/dev/bus/usb
+
+  lerobot-follower:
+    extends:
+      service: lerobot-base
+    devices:
+      - /dev/ttyACM0:/dev/ttyACM0 # follower seul, sans symlink udev
+
+  lerobot-leader:
+    extends:
+      service: lerobot-base
+    devices:
+      - /dev/ttyACM1:/dev/ttyACM1 # leader seul, sans symlink udev
+
+  lerobot-gpu:
+    extends:
+      service: lerobot-base
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+volumes:
+  uv-cache:

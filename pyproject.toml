@@ -1,0 +1,43 @@
+[project]
+name = "robotkraft"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "lerobot[feetech,async]==0.5.1",
+    "transformers==5.3.0",
+    "accelerate==1.14.0",
+    "opencv-python==4.13.0.92",
+    "depthai==3.7.1",
+    "pyzmq==27.1.0",
+]
+
+[project.optional-dependencies]
+# Deux variantes exclusives : torch CPU pour les postes sans GPU NVIDIA
+# (image trois fois plus legere), torch CUDA pour le serveur et les portables
+# equipes. La version suit la contrainte de lerobot 0.5.1 (torch<2.11).
+cpu = ["torch==2.10.0", "torchvision==0.25.0"]
+cuda = ["torch==2.10.0", "torchvision==0.25.0"]
+
+[tool.uv]
+exclude-dependencies = ["opencv-python-headless"]
+conflicts = [[{ extra = "cpu" }, { extra = "cuda" }]]
+
+[tool.uv.sources]
+depthai = { index = "luxonis" }
+torch = [
+  { index = "pytorch-cpu", extra = "cpu" },
+]
+# torchvision doit venir du meme index que torch : un torchvision compile pour
+# CUDA face a un torch CPU donne "operator torchvision::nms does not exist".
+torchvision = [
+  { index = "pytorch-cpu", extra = "cpu" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "luxonis"
+url = "https://artifacts.luxonis.com/artifactory/luxonis-python-release-local/"
