@@ -1,0 +1,46 @@
+{
+  "shoulder_pan": {
+    "deltas_deg": {
+      "shoulder_pan": 5.0
+    },
+    "dx_px_per_deg": -5.62,
+    "dy_px_per_deg": 0.94
+  },
+  "shoulder_lift": {
+    "deltas_deg": {
+      "shoulder_lift": 5.0
+    },
+    "dx_px_per_deg": -1.22,
+    "dy_px_per_deg": -0.74
+  },
+  "elbow_flex": {
+    "deltas_deg": {
+      "elbow_flex": 5.0
+    },
+    "dx_px_per_deg": -1.54,
+    "dy_px_per_deg": -4.08
+  },
+  "wrist_flex": {
+    "deltas_deg": {
+      "wrist_flex": 5.0
+    },
+    "dx_px_per_deg": -1.34,
+    "dy_px_per_deg": -1.66
+  },
+  "coude+5 poignet-5": {
+    "deltas_deg": {
+      "elbow_flex": 5.0,
+      "wrist_flex": -5.0
+    },
+    "dx_px_per_deg": -0.64,
+    "dy_px_per_deg": 6.7
+  },
+  "coude+5 poignet+5": {
+    "deltas_deg": {
+      "elbow_flex": 5.0,
+      "wrist_flex": 5.0
+    },
+    "dx_px_per_deg": -0.84,
+    "dy_px_per_deg": -5.28
+  }
+}
