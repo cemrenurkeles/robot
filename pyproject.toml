@@ -9,6 +9,7 @@ dependencies = [
     "opencv-python==4.13.0.92",
     "depthai==3.7.1",
     "pyzmq==27.1.0",
+    "placo>=0.9.16",
 ]
 
 [project.optional-dependencies]
@@ -21,6 +22,9 @@ cuda = ["torch==2.10.0", "torchvision==0.25.0"]
 [tool.uv]
 exclude-dependencies = ["opencv-python-headless"]
 conflicts = [[{ extra = "cpu" }, { extra = "cuda" }]]
+# placo 0.9.16 et pin 3.4 sont compilés contre urdfdom 4 (lui-même contre tinyxml2 10) : sans ces contraintes, uv choisit
+# cmeel-urdfdom 6 / cmeel-tinyxml2 11 et `import placo` échoue (bibliothèques .dylib introuvables).
+constraint-dependencies = ["cmeel-urdfdom<5", "cmeel-tinyxml2<11"]
 
 [tool.uv.sources]
 depthai = { index = "luxonis" }
