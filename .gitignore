@@ -1,0 +1,20 @@
+# Secrets et configuration locale
+.env
+*.pem
+*.key
+
+# Artefacts d'execution
+.cache/
+outputs/
+.venv
+.venv.nosync/
+__pycache__/
+*.pyc
+
+# Donnees enregistrees pendant l'evenement
+datasets/*.npy
+datasets/photo_*.jpg
+!datasets/camera_config.json
+
+# Systeme
+.DS_Store
