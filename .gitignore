@@ -18,3 +18,12 @@ datasets/photo_*.jpg
 
 # Systeme
 .DS_Store
+
+# Resultats de mesure de la balance (regeneres a chaque pesee)
+scripts/robot/positions.txt
+scripts/robot/mesure.csv
+scripts/robot/mesure_coupe.csv
+scripts/robot/ajustement.png
+
+# Copies de secours locales
+.backup/
