@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Rejoue les deux épisodes oscillateur et pèse l'objet avec la balance à ressort (pesee_robot.py).
 
-La caméra de scène (OAK) est ouverte avant le mouvement. L'oscillation commence à --debut secondes de l'épisode
+La caméra de scène (OAK) est ouverte avant la connexion au bras : l'ouvrir en même temps fait perdre des
+réponses aux moteurs (« There is no status packet » pendant la configuration). L'oscillation commence à --debut secondes de l'épisode
 --episode (temps de l'enregistrement ; par défaut 11 s de l'épisode 1 : le bras relâche le plateau entre 10,5 et
 11 s). Le relevé de la balance démarre 1 s avant, en arrière-plan sans interrompre le mouvement, et dure au moins
 pesee_robot.DUREE secondes et jusqu'à la fin de l'épisode + 3 s (ou --duree secondes) : pesee_robot retrouve
-lui-même l'oscillation dans le relevé. À la fin des deux
-épisodes, pesee_robot calcule la masse (fichiers positions.txt, mesure.csv, ajustement.png à côté de pesee_robot.py).
+lui-même l'oscillation dans le relevé. À la fin des deux épisodes, pesee_robot calcule la masse (fichiers positions.txt, mesure.csv, ajustement.png à côté de pesee_robot.py).
 
 Usage :
   FOLLOWER_PORT=/dev/cu.usbmodemXXXX python3 scripts/robot/oscillate_and_weigh.py [--speed 0.5] [--episode 1] [--debut 11]
@@ -78,23 +78,30 @@ def play(robot, frames, fps, speed, on_time=None):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--speed", type=float, default=0.5, help="vitesse du rejeu (0.5 = deux fois plus lent)")
+    parser.add_argument("--speed2", type=float, default=None,
+                        help="vitesse du 2e épisode (par défaut la même que --speed, max 1.5)")
     parser.add_argument("--episode", type=int, default=1, choices=range(len(EPISODES)),
                         help="épisode où l'oscillation commence")
     parser.add_argument("--debut", type=float, default=11.0, help="début de l'oscillation, en s de cet épisode")
     parser.add_argument("--duree", type=float, default=None,
                         help="durée du relevé (s) ; par défaut au moins pesee_robot.DUREE et jusqu'à la fin + 3 s")
     args = parser.parse_args()
-    if not 0.1 <= args.speed <= 1.5:
-        raise SystemExit("--speed doit être entre 0.1 et 1.5")
+    speeds = [args.speed, args.speed if args.speed2 is None else args.speed2]
+    if not all(0.1 <= v <= 1.5 for v in speeds):
+        raise SystemExit("--speed et --speed2 doivent être entre 0.1 et 1.5")
 
     episodes = [json.loads(p.read_text()) for p in EPISODES]
     start_at = max(0.0, args.debut - MARGE_S)
     if args.duree is None:  # temps réel restant de l'épisode après le départ du relevé, + 3 s de marge
-        rest = len(episodes[args.episode]["frames"]) / episodes[args.episode]["fps"] - start_at
-        rest += sum(len(ep["frames"]) / ep["fps"] for ep in episodes[args.episode + 1:])
-        args.duree = max(pesee_robot.DUREE + MARGE_S, rest / args.speed + 3.0)
+        rest = (len(episodes[args.episode]["frames"]) / episodes[args.episode]["fps"] - start_at) / speeds[args.episode]
+        rest += sum(len(ep["frames"]) / ep["fps"] / v for ep, v in zip(episodes[args.episode + 1:], speeds[args.episode + 1:]))
+        args.duree = max(pesee_robot.DUREE + MARGE_S, rest + 3.0)
     balance = pesee_robot.Balance(camera=CameraOAKv3())
-    robot = make_follower(hold=True)
+    try:
+        robot = make_follower(hold=True)
+    except Exception:
+        balance.fermer()
+        raise
     started = False
 
     def start_weighing(t):
@@ -108,8 +115,8 @@ def main():
         for n, ep in enumerate(episodes):
             print(f"épisode {n} : retour à la pose de départ")
             move_to(robot, ep["frames"][0], 2.0)
-            print(f"épisode {n} : rejeu ({len(ep['frames']) / ep['fps']:.1f} s à vitesse {args.speed})")
-            play(robot, ep["frames"], ep["fps"], args.speed, start_weighing if n == args.episode else None)
+            print(f"épisode {n} : rejeu ({len(ep['frames']) / ep['fps']:.1f} s à vitesse {speeds[n]})")
+            play(robot, ep["frames"], ep["fps"], speeds[n], start_weighing if n == args.episode else None)
         if not started:
             print(f"épisode {args.episode} plus court que {start_at} s : pas de relevé")
             return

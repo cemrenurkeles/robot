@@ -4,7 +4,7 @@
 # Le rejeu ne démarre que si find_green.py a bien pris l'objet et est revenu à la pose d'observation.
 #
 # Usage (depuis la racine du projet, venv activé, serveur oak_zmq_server.py arrêté) :
-#   FOLLOWER_PORT=/dev/cu.usbmodemXXXX [DEVICE=/dev/video0] [SPEED=0.5] [HAUTEUR=3.0] [DEBUT=11] \
+#   FOLLOWER_PORT=/dev/cu.usbmodemXXXX [DEVICE=/dev/video0] [SPEED=0.5] [SPEED2=1.5] [HAUTEUR=3.0] [DEBUT=11] \
 #     bash scripts/robot/grab_and_oscillate.sh
 set -o pipefail
 
@@ -14,7 +14,7 @@ python3 -u scripts/robot/find_green.py --hauteur "${HAUTEUR:-3.0}" "$@" 2>&1 | t
 
 if grep -q "RETOUR à la pose d'observation" "$LOG"; then
     echo "objet pris : rejeu des épisodes oscillateur 0 et 1 avec pesée"
-    python3 scripts/robot/oscillate_and_weigh.py --speed "${SPEED:-0.5}" --debut "${DEBUT:-11}"
+    python3 scripts/robot/oscillate_and_weigh.py --speed "${SPEED:-0.5}" --speed2 "${SPEED2:-${SPEED:-0.5}}" --debut "${DEBUT:-11}"
 else
     echo "objet non pris : pas de rejeu"
     exit 1
